@@ -3,188 +3,163 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pay Dhairya</title>
+  <title>Smart NFC Attendance Terminal</title>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body {
-      background-color: #0b0f19;
-      color: #f8fafc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 16px;
+      background: #0b0f19; color: #f8fafc;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; margin: 0; padding: 20px;
     }
-    .card {
-      background: #151c2e;
-      border: 1px solid #1e293b;
-      border-radius: 24px;
-      padding: 32px 24px;
-      width: 100%;
-      max-width: 380px;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    .scanner-card {
+      background: #151c2e; border: 1px solid #1e293b; border-radius: 28px;
+      padding: 36px 28px; width: 100%; max-width: 420px; text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
-    .avatar {
-      width: 68px;
-      height: 68px;
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      font-weight: 700;
-      margin: 0 auto 16px;
-      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+    .badge {
+      display: inline-block; padding: 6px 14px; border-radius: 20px;
+      background: #1e293b; color: #94a3b8; font-size: 0.85rem; font-weight: 600;
+      margin-bottom: 16px;
     }
-    h2 {
-      margin: 0 0 4px;
-      font-size: 1.4rem;
-      letter-spacing: -0.5px;
+    h1 { font-size: 1.5rem; margin: 0 0 8px; letter-spacing: -0.5px; }
+    p { color: #94a3b8; font-size: 0.9rem; margin: 0 0 28px; }
+    .status-box {
+      min-height: 140px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; background: #0f172a; border: 2px dashed #334155;
+      border-radius: 20px; padding: 20px; margin-bottom: 24px; transition: all 0.25s ease;
     }
-    .vpa {
-      color: #94a3b8;
-      font-size: 0.95rem;
-      margin-bottom: 24px;
-      background: #0f172a;
-      display: inline-block;
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid #1e293b;
-    }
-    .input-box {
-      display: flex;
-      align-items: center;
-      background: #0f172a;
-      border: 2px solid #334155;
-      border-radius: 14px;
-      padding: 10px 16px;
-      margin-bottom: 14px;
-      transition: border-color 0.2s;
-    }
-    .input-box:focus-within {
-      border-color: #3b82f6;
-    }
-    .currency-symbol {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #94a3b8;
-      margin-right: 8px;
-    }
-    input[type="number"] {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #fff;
-      font-size: 1.5rem;
-      font-weight: 700;
-      width: 100%;
-    }
-    .chips {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 22px;
-      justify-content: center;
-    }
-    .chip {
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: #cbd5e1;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .chip:active {
-      background: #3b82f6;
-      color: #fff;
-    }
-    .pay-btn {
-      width: 100%;
-      padding: 16px;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      font-size: 1.05rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    .status-box.active { border-color: #3b82f6; }
+    .status-box.success { border-color: #10b981; background: rgba(16, 185, 129, 0.08); }
+    .status-box.error { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); }
+    .status-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 4px; }
+    .status-sub { font-size: 0.9rem; color: #94a3b8; }
+    .btn {
+      width: 100%; padding: 16px; border-radius: 14px; border: none;
+      font-size: 1.05rem; font-weight: 600; cursor: pointer;
+      background: #2563eb; color: #fff; box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
       transition: opacity 0.2s;
     }
-    .pay-btn:active {
-      opacity: 0.85;
-    }
-    .subtext {
-      margin-top: 18px;
-      font-size: 0.8rem;
-      color: #64748b;
+    .btn:active { opacity: 0.85; }
+    .uid-display {
+      font-family: monospace; font-size: 0.8rem; color: #64748b; margin-top: 14px;
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <div class="avatar">D</div>
-    <h2>Dhairya</h2>
-    <div class="vpa">whydhairya@fam</div>
+  <div class="scanner-card">
+    <div class="badge">NFC Attendance Terminal</div>
+    <h1>Scan Student ID</h1>
+    <p>Tap your card or sticker against this device to mark attendance.</p>
 
-    <form id="paymentForm">
-      <div class="input-box">
-        <span class="currency-symbol">₹</span>
-        <input 
-          type="number" 
-          id="amount" 
-          placeholder="Enter amount" 
-          min="1" 
-          step="any" 
-          inputmode="decimal"
-        />
-      </div>
+    <div class="status-box" id="statusBox">
+      <div class="status-title" id="statusTitle">Ready to Start</div>
+      <div class="status-sub" id="statusSub">Tap the button below to enable the reader</div>
+    </div>
 
-      <div class="chips">
-        <button type="button" class="chip" onclick="setAmount(50)">₹50</button>
-        <button type="button" class="chip" onclick="setAmount(100)">₹100</button>
-        <button type="button" class="chip" onclick="setAmount(200)">₹200</button>
-        <button type="button" class="chip" onclick="setAmount(500)">₹500</button>
-      </div>
-
-      <button type="submit" class="pay-btn">Pay with UPI</button>
-    </form>
-
-    <div class="subtext">Supports GPay, PhonePe, Paytm & BHIM</div>
+    <button class="btn" id="startBtn" onclick="activateNfc()">Enable NFC Scanner</button>
+    <div class="uid-display" id="lastUid"></div>
   </div>
 
   <script>
-    const UPI_ID = "whydhairya@fam";
-    const PAYEE_NAME = "Dhairya";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxp74pjGU-vmfCwJMrPt_fZadiMhmh7zaZ2eizuKwmBYPnNF8ONs1oBySBvJ5ridAY/exec";
 
-    function setAmount(val) {
-      document.getElementById("amount").value = val;
+    function playBeep(success = true) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (success) {
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+          osc.frequency.setValueAtTime(1174.66, audioCtx.currentTime + 0.1); // D6 note
+          gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          osc.start(audioCtx.currentTime);
+          osc.stop(audioCtx.currentTime + 0.25);
+        } else {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+          gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+          osc.start(audioCtx.currentTime);
+          osc.stop(audioCtx.currentTime + 0.3);
+        }
+      } catch (e) {
+        console.log("Audio not allowed yet:", e);
+      }
     }
 
-    document.getElementById("paymentForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      
-      const amtInput = document.getElementById("amount").value.trim();
-      let upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
+    async function activateNfc() {
+      const box = document.getElementById("statusBox");
+      const title = document.getElementById("statusTitle");
+      const sub = document.getElementById("statusSub");
+      const btn = document.getElementById("startBtn");
+      const uidDisplay = document.getElementById("lastUid");
 
-      if (amtInput) {
-        const parsed = parseFloat(amtInput);
-        if (parsed > 0) {
-          upiUrl += `&am=${parsed.toFixed(2)}`;
-        }
+      if (!('NDEFReader' in window)) {
+        box.className = "status-box error";
+        title.innerText = "Web NFC Unavailable";
+        sub.innerText = "Open this page in Google Chrome on an NFC-enabled Android device.";
+        return;
       }
 
-      // Triggers native UPI intent on both iOS Safari and Android
-      window.location.href = upiUrl;
-    });
+      try {
+        const ndef = new NDEFReader();
+        await ndef.scan();
+
+        btn.style.display = "none";
+        box.className = "status-box active";
+        title.innerText = "🟢 Terminal Ready";
+        sub.innerText = "Waiting for student card tap...";
+
+        ndef.addEventListener("reading", async ({ serialNumber }) => {
+          box.className = "status-box active";
+          title.innerText = "Reading Card...";
+          sub.innerText = "Logging attendance to database...";
+          uidDisplay.innerText = "UID: " + serialNumber;
+
+          try {
+            const response = await fetch(SCRIPT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({ uid: serialNumber })
+            });
+
+            const result = await response.json();
+
+            if (result.status === "success") {
+              playBeep(true);
+              box.className = "status-box success";
+              title.innerText = "✅ " + result.name;
+              sub.innerText = "Roll: " + result.roll + " • Marked Present";
+            } else {
+              playBeep(false);
+              box.className = "status-box error";
+              title.innerText = "⚠️ Log Error";
+              sub.innerText = result.message || "Could not log record";
+            }
+          } catch (err) {
+            playBeep(false);
+            box.className = "status-box error";
+            title.innerText = "Network Error";
+            sub.innerText = "Check internet connection.";
+          }
+
+          // Reset status box back to scan mode after 3 seconds
+          setTimeout(() => {
+            box.className = "status-box active";
+            title.innerText = "🟢 Terminal Ready";
+            sub.innerText = "Waiting for next student card...";
+          }, 3000);
+        });
+
+      } catch (err) {
+        box.className = "status-box error";
+        title.innerText = "Access Denied";
+        sub.innerText = err.message;
+      }
+    }
   </script>
 
 </body>
